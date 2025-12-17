@@ -8,6 +8,10 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 import numpy as np
+import sys
+# Add project root to path for Streamlit Cloud
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.datasets.cifar10 import load_cifar10
 from src.shifts.corruptions import SHIFTS, denormalize
 from src.models.build_model import build_model
@@ -148,9 +152,15 @@ def load_resources(checkpoint_path):
 model, gradcam, device = load_resources(ckpt_path)
 
 csv_path = os.path.join(run_dir, "metrics.csv")
+demo_csv_path = os.path.join("demo_data", "benchmark_results.csv")
+
 if not os.path.exists(csv_path):
-    st.error("metrics.csv not found.")
-    st.stop()
+    if os.path.exists(demo_csv_path):
+        st.info("⚠️ Local run not found. Switching to **Demo Mode** using pre-computed benchmark results.")
+        csv_path = demo_csv_path
+    else:
+        st.error("metrics.csv not found and no demo data available.")
+        st.stop()
 
 df = pd.read_csv(csv_path)
 
